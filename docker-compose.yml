@@ -1,0 +1,71 @@
+services:
+  registration-service:
+    profiles: ["gateway"]
+    build: ./registration-service
+    env_file:
+      - ./registration-service/.env
+    ports:
+      - "5001:5001"
+    restart: unless-stopped
+
+  login-service:
+    profiles: ["gateway"]
+    build: ./login-service
+    env_file:
+      - ./login-service/.env
+    ports:
+      - "5002:5002"
+    restart: unless-stopped
+
+  nginx:
+    profiles: ["gateway"]
+    build: ./nginx
+    env_file:
+      - ./nginx/.env
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+  api-gateway:
+    profiles: ["gateway"]
+    build: ./api-gateway
+    env_file:
+      - ./api-gateway/.env
+    ports:
+      - "80:5000"
+    depends_on:
+      - registration-service
+      - login-service
+      - nginx
+    restart: unless-stopped
+
+  vehicle-1:
+    profiles: ["vehicle1"]
+    build: ./vehicle-service
+    env_file:
+      - ./vehicle-service/.env
+    environment:
+      VEHICLE_SERVICE_EC2_INSTANCE: vehicle-1
+    ports:
+      - "5003:5003"
+    restart: unless-stopped
+
+  vehicle-2:
+    profiles: ["vehicle2"]
+    build: ./vehicle-service
+    env_file:
+      - ./vehicle-service/.env
+    environment:
+      VEHICLE_SERVICE_EC2_INSTANCE: vehicle-2
+    ports:
+      - "5003:5003"
+    restart: unless-stopped
+
+  rental-service:
+    profiles: ["vehicle2"]
+    build: ./rental-service
+    env_file:
+      - ./rental-service/.env
+    ports:
+      - "5004:5004"
+    restart: unless-stopped
